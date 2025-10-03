@@ -3,8 +3,15 @@ use image::ImageFormat;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use wondermagick::{
-    arg_parsers::Location, decode::decode, encode::encode, error::MagickError,
-    operations::auto_orient::auto_orient, plan::Modifiers, plan::Strip, wm_try,
+    arg_parsers::{Location, ResizeConstraint, ResizeGeometry, ResizeTarget},
+    decode::decode,
+    encode::encode,
+    error::MagickError,
+    operations::auto_orient::auto_orient,
+    operations::resize::resize,
+    plan::Modifiers,
+    plan::Strip,
+    wm_err, wm_try,
 };
 
 #[derive(Parser, Debug)]
@@ -34,6 +41,34 @@ fn real_main() -> Result<(), MagickError> {
     let mut image = wm_try!(decode(&Location::Path(PathBuf::from(args.input)), None));
 
     wm_try!(auto_orient(&mut image));
+
+    if let Some(size) = &args.resize {
+        let size_str = size.to_string_lossy();
+        let dims: Vec<&str> = size_str.split('x').collect();
+        if dims.len() != 2 {
+            return Err(wm_err!("invalid resize argument"));
+        }
+
+        wm_try!(resize(
+            &mut image,
+            &ResizeGeometry {
+                target: ResizeTarget::Size {
+                    width: Some(
+                        dims[0]
+                            .parse::<u32>()
+                            .map_err(|_| wm_err!("invalid width in resize argument"))?
+                    ),
+                    height: Some(
+                        dims[1]
+                            .parse::<u32>()
+                            .map_err(|_| { wm_err!("invalid height in resize argument") })?
+                    ),
+                    ignore_aspect_ratio: false
+                },
+                constraint: ResizeConstraint::OnlyShrink
+            }
+        ));
+    }
 
     wm_try!(encode(
         &mut image,

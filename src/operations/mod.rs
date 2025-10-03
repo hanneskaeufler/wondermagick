@@ -1,7 +1,7 @@
 pub mod auto_orient;
 mod crop;
 mod identify;
-mod resize;
+pub mod resize;
 
 use crate::{
     arg_parsers::{CropGeometry, IdentifyFormat, LoadCropGeometry, ResizeGeometry},

@@ -8,6 +8,7 @@ use wondermagick::{
     encode::encode,
     error::MagickError,
     operations::auto_orient::auto_orient,
+    operations::composite::{composite, Alpha, Gravity},
     operations::resize::resize,
     plan::Modifiers,
     plan::Strip,
@@ -33,6 +34,18 @@ struct Args {
     /// Quality (1-100)
     #[arg(long)]
     quality: Option<f64>,
+
+    /// Composite a watermark image onto the output image
+    #[arg(long)]
+    watermark_image: Option<OsString>,
+
+    /// Make watermark image transparent (0.0-1.0)
+    #[arg(long)]
+    watermark_image_opacity: Option<f32>,
+
+    /// Position watermark image
+    #[arg(long)]
+    watermark_image_gravity: Option<String>,
 }
 
 fn real_main() -> Result<(), MagickError> {
@@ -67,6 +80,24 @@ fn real_main() -> Result<(), MagickError> {
                 },
                 constraint: ResizeConstraint::OnlyShrink
             }
+        ));
+    }
+
+    if let Some(watermark_image) = &args.watermark_image {
+        let mut watermark = wm_try!(decode(&watermark_image, None));
+        let gravity = if let Some(gravity_str) = &args.watermark_image_gravity {
+            Gravity::try_from(gravity_str).map_err(|_| wm_err!("invalid gravity argument"))?
+        } else {
+            Gravity::Center
+        };
+
+        wm_try!(composite(
+            &mut image,
+            &mut watermark,
+            gravity,
+            args.watermark_image_opacity
+                .map(|v| Alpha(v))
+                .unwrap_or(Alpha(1.0))
         ));
     }
 

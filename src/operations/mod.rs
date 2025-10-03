@@ -1,4 +1,4 @@
-mod auto_orient;
+pub mod auto_orient;
 mod crop;
 mod identify;
 mod resize;

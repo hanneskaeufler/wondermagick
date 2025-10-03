@@ -9,7 +9,7 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 mod arg_parse_err;
-mod arg_parsers;
+pub mod arg_parsers;
 pub mod args;
 pub mod decode;
 pub mod encode;

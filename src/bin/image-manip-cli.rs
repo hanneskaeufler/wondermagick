@@ -85,16 +85,13 @@ fn real_main() -> Result<(), MagickError> {
 
     if let Some(watermark_image) = &args.watermark_image {
         let mut watermark = wm_try!(decode(&watermark_image, None));
-        let gravity = if let Some(gravity_str) = &args.watermark_image_gravity {
-            Gravity::try_from(gravity_str).map_err(|_| wm_err!("invalid gravity argument"))?
-        } else {
-            Gravity::Center
-        };
 
         wm_try!(composite(
             &mut image,
             &mut watermark,
-            gravity,
+            args.watermark_image_gravity
+                .map(|gravity_str| Gravity::try_from(&gravity_str).unwrap_or(Gravity::Center))
+                .unwrap_or(Gravity::Center),
             args.watermark_image_opacity
                 .map(|v| Alpha(v))
                 .unwrap_or(Alpha(1.0))

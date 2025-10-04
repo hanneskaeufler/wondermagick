@@ -33,7 +33,7 @@ hardened_malloc = ["mimalloc/secure"]
 asm = ["image/nasm"]
 
 # Image format features - passed through to the `image` crate
-default-formats = ["avif", "bmp", "dds", "exr", "ff", "gif", "hdr", "ico", "jpeg", "png", "pnm", "qoi", "tga", "tiff", "webp"]
+default-formats = ["avif", "bmp", "dds", "exr", "ff", "gif", "hdr", "ico", "jpeg", "png", "pnm", "qoi", "tga", "tiff", "webp", "jxl"]
 avif = ["image/avif"]
 bmp = ["image/bmp"]
 dds = ["image/dds"]

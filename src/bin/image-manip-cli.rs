@@ -124,14 +124,13 @@ fn real_main() -> Result<(), MagickError> {
         ));
     }
 
-    if let Some(_) = &args.watermark_text {
+    if let Some(watermark_text) = &args.watermark_text {
         image_text::draw_text(
             &mut image.pixels,
-            TextBlock::string("hello world 🌎\nhere is a new line\n日本語 मनीष منش")
-                .with_alignment(TextBlockPosition {
-                    x: AxisAlign::CenterAtCanvasCenter,
-                    y: AxisAlign::CenterAtCanvasCenter,
-                }),
+            TextBlock::string(watermark_text.to_string_lossy()).with_alignment(TextBlockPosition {
+                x: AxisAlign::CenterAtCanvasCenter,
+                y: AxisAlign::CenterAtCanvasCenter,
+            }),
         );
     }
 

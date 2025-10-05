@@ -84,7 +84,10 @@ fn real_main() -> Result<(), MagickError> {
     }
 
     if let Some(watermark_image) = &args.watermark_image {
-        let mut watermark = wm_try!(decode(&watermark_image, None));
+        let mut watermark = wm_try!(decode(
+            &Location::Path(PathBuf::from(watermark_image)),
+            None
+        ));
 
         wm_try!(composite(
             &mut image,

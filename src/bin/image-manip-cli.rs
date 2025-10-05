@@ -1,5 +1,7 @@
 use clap::Parser;
 use image::ImageFormat;
+use image::{ColorType, DynamicImage, Pixel, Rgba};
+use image_text::{AxisAlign, TextBlock, TextBlockPosition};
 use std::ffi::OsString;
 use std::path::PathBuf;
 use wondermagick::{
@@ -46,12 +48,33 @@ struct Args {
     /// Position watermark image
     #[arg(long)]
     watermark_image_gravity: Option<String>,
+
+    /// Composite a watermark text onto the output image
+    #[arg(long)]
+    watermark_text: Option<OsString>,
+
+    /// Make watermark text colorful (rgba, comma-separated)
+    #[arg(long)]
+    watermark_text_color_rgba: Option<String>,
+
+    /// Position watermark text
+    #[arg(long)]
+    watermark_text_gravity: Option<String>,
 }
 
 fn real_main() -> Result<(), MagickError> {
     let args = Args::parse();
     wondermagick::init::init();
     let mut image = wm_try!(decode(&Location::Path(PathBuf::from(args.input)), None));
+
+    match (&args.watermark_image, &args.watermark_text) {
+        (Some(_), Some(_)) => {
+            return Err(wm_err!(
+                "cannot specify both watermark image and watermark text"
+            ));
+        }
+        _ => {}
+    }
 
     wm_try!(auto_orient(&mut image));
 
@@ -99,6 +122,17 @@ fn real_main() -> Result<(), MagickError> {
                 .map(|v| Alpha(v))
                 .unwrap_or(Alpha(1.0))
         ));
+    }
+
+    if let Some(_) = &args.watermark_text {
+        image_text::draw_text(
+            &mut image.pixels,
+            TextBlock::string("hello world 🌎\nhere is a new line\n日本語 मनीष منش")
+                .with_alignment(TextBlockPosition {
+                    x: AxisAlign::CenterAtCanvasCenter,
+                    y: AxisAlign::CenterAtCanvasCenter,
+                }),
+        );
     }
 
     wm_try!(encode(

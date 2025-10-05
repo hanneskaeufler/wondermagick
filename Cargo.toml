@@ -22,6 +22,7 @@ mimalloc = { version = "0.1.47", optional = true }
 jxl-oxide = { version = "0.12.5", features = ["image", "moxcms"], optional = true }
 clap = { version = "4.5.48", features = ["derive"] }
 imageproc = "0.25.0"
+image-text = { git = "https://github.com/bschwind/image-text.git" }
 
 [features]
 default = ["hardened_malloc", "default-formats"]

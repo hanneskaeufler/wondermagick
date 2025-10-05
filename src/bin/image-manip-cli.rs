@@ -1,7 +1,5 @@
 use clap::Parser;
 use image::ImageFormat;
-use image::{ColorType, DynamicImage, Pixel, Rgba};
-use image_text::{AxisAlign, TextBlock, TextBlockPosition};
 use std::ffi::OsString;
 use std::path::PathBuf;
 use wondermagick::{
@@ -9,9 +7,10 @@ use wondermagick::{
     decode::decode,
     encode::encode,
     error::MagickError,
-    operations::auto_orient::auto_orient,
-    operations::composite::{composite, Alpha, Gravity},
-    operations::resize::resize,
+    operations::{
+        alpha::Alpha, auto_orient::auto_orient, composite::composite, gravity::Gravity,
+        label::label, resize::resize,
+    },
     plan::Modifiers,
     plan::Strip,
     wm_err, wm_try,
@@ -125,13 +124,7 @@ fn real_main() -> Result<(), MagickError> {
     }
 
     if let Some(watermark_text) = &args.watermark_text {
-        image_text::draw_text(
-            &mut image.pixels,
-            TextBlock::string(watermark_text.to_string_lossy()).with_alignment(TextBlockPosition {
-                x: AxisAlign::CenterAtCanvasCenter,
-                y: AxisAlign::CenterAtCanvasCenter,
-            }),
-        );
+        label(&mut image, watermark_text);
     }
 
     wm_try!(encode(

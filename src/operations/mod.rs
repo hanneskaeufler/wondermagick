@@ -5,11 +5,12 @@ mod identify;
 mod resize;
 
 use crate::{
-    arg_parsers::{
-        CropGeometry, FileFormat, IdentifyFormat, LoadCropGeometry, Location, ResizeGeometry,
-    },
+    arg_parsers::{CropGeometry, IdentifyFormat, LoadCropGeometry, ResizeGeometry},
+    decode::decode,
     error::MagickError,
     image::Image,
+    plan::FilePlan,
+    wm_try,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -18,7 +19,7 @@ pub enum Operation {
     Thumbnail(ResizeGeometry),
     Scale(ResizeGeometry),
     Sample(ResizeGeometry),
-    Composite(Location, Option<FileFormat>),
+    Composite(FilePlan, Option<FilePlan>),
     CropOnLoad(LoadCropGeometry),
     Crop(CropGeometry),
     Identify(Option<IdentifyFormat>),
@@ -32,8 +33,9 @@ impl Operation {
             Operation::Thumbnail(geom) => resize::thumbnail(image, geom),
             Operation::Scale(geom) => resize::scale(image, geom),
             Operation::Sample(geom) => resize::sample(image, geom),
-            Operation::Composite(other_image, other_image_format) => {
-                composite::composite(image, &other_image, *other_image_format)
+            Operation::Composite(other_image, _mask) => {
+                let other_image = wm_try!(decode(&other_image.location, other_image.format));
+                composite::composite(image, &other_image, None)
             }
             Operation::CropOnLoad(geom) => crop::crop_on_load(image, geom),
             Operation::Crop(geom) => crop::crop(image, geom),

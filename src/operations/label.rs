@@ -49,6 +49,7 @@ pub fn label(image: &mut Image, watermark_text: &std::ffi::OsStr, gravity: Gravi
     image_text::draw_text(
         &mut image.pixels,
         TextBlock::string(watermark_text.to_string_lossy())
+            .with_max_width(w as f32)
             .with_alignment(gravity_into(gravity, w, h)),
     );
 }

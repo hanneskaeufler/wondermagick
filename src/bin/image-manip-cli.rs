@@ -124,7 +124,13 @@ fn real_main() -> Result<(), MagickError> {
     }
 
     if let Some(watermark_text) = &args.watermark_text {
-        label(&mut image, watermark_text);
+        label(
+            &mut image,
+            watermark_text,
+            args.watermark_text_gravity
+                .map(|gravity_str| Gravity::try_from(&gravity_str).unwrap_or(Gravity::Center))
+                .unwrap_or(Gravity::Center),
+        );
     }
 
     wm_try!(encode(

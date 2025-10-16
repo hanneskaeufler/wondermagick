@@ -35,7 +35,7 @@ struct Args {
 
     /// Quality (1-100)
     #[arg(long)]
-    quality: Option<f64>,
+    quality: Option<u8>,
 
     /// Composite a watermark image onto the output image
     #[arg(long)]
@@ -152,7 +152,7 @@ fn real_main() -> Result<(), MagickError> {
         &Location::Path(PathBuf::from(args.output)),
         Some(ImageFormat::Jpeg),
         &Modifiers {
-            quality: args.quality,
+            quality: args.quality.map(|q| q as f64),
             strip: Strip {
                 exif: args.strip_metadata,
                 icc: args.strip_metadata,

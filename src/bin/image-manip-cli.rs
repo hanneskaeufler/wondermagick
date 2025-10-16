@@ -1,7 +1,8 @@
 use clap::Parser;
 use image::ImageFormat;
-use std::ffi::OsString;
 use std::path::PathBuf;
+use std::str::FromStr;
+use std::{ffi::OsString, num::ParseIntError};
 use wondermagick::{
     arg_parsers::{Location, ResizeConstraint, ResizeGeometry, ResizeTarget},
     decode::decode,
@@ -124,9 +125,22 @@ fn real_main() -> Result<(), MagickError> {
     }
 
     if let Some(watermark_text) = &args.watermark_text {
+        let color = args
+            .watermark_text_color_rgba
+            .map_or(Ok((255, 255, 255, 255)), |color_str| {
+                let comps: Vec<&str> = color_str.split(',').collect();
+                let r = u8::from_str(comps[0])?;
+                let g = u8::from_str(comps[1])?;
+                let b = u8::from_str(comps[2])?;
+                let a = u8::from_str(comps[3])?;
+                Ok((r, g, b, a))
+            })
+            .map_err(|_: ParseIntError| wm_err!("invalid RGBA color"))?;
+
         label(
             &mut image,
             watermark_text,
+            color,
             args.watermark_text_gravity
                 .map(|gravity_str| Gravity::try_from(&gravity_str).unwrap_or(Gravity::Center))
                 .unwrap_or(Gravity::Center),

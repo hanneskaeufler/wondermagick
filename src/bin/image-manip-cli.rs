@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::{ffi::OsString, num::ParseIntError};
 use wondermagick::{
-    arg_parsers::{Location, ResizeConstraint, ResizeGeometry, ResizeTarget},
+    arg_parsers::{FileFormat, Location, ResizeConstraint, ResizeGeometry, ResizeTarget},
     decode::decode,
     encode::encode,
     error::MagickError,
@@ -150,7 +150,7 @@ fn real_main() -> Result<(), MagickError> {
     wm_try!(encode(
         &mut image,
         &Location::Path(PathBuf::from(args.output)),
-        Some(ImageFormat::Jpeg),
+        Some(FileFormat::Format(ImageFormat::Jpeg)),
         &Modifiers {
             quality: args.quality.map(|q| q as f64),
             strip: Strip {

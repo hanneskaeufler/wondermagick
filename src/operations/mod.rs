@@ -3,7 +3,7 @@ pub mod auto_orient;
 pub mod composite;
 mod crop;
 pub mod gravity;
-mod identify;
+pub mod identify;
 pub mod label;
 pub mod resize;
 

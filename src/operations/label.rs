@@ -69,7 +69,7 @@ pub fn label(
             text_spans: vec![Text {
                 text: String::from(text.to_string_lossy()),
                 font_size: 200.0,
-                font_weight: 1200,
+                font_weight: 600,
                 color: (color.0, color.1, color.2, 255), // Force full alpha for rendering
                 font: None,
                 line_height: None,

@@ -1,5 +1,8 @@
-use crate::{image::Image, operations::gravity::Gravity};
-//use image::{ColorType, DynamicImage, Pixel, Rgba};
+use crate::{
+    error::MagickError, image::Image, operations::alpha::Alpha, operations::composite::composite,
+    operations::gravity::Gravity,
+};
+use image::ImageFormat;
 use image_text::{AxisAlign, Text, TextBlock, TextBlockPosition};
 
 fn gravity_into(gravity: Gravity, width: u32, height: u32) -> TextBlockPosition {
@@ -43,11 +46,21 @@ fn gravity_into(gravity: Gravity, width: u32, height: u32) -> TextBlockPosition 
     }
 }
 
-pub fn label(image: &mut Image, text: &std::ffi::OsStr, color: (u8, u8, u8, u8), gravity: Gravity) {
+pub fn label(
+    image: &mut Image,
+    text: &std::ffi::OsStr,
+    color: (u8, u8, u8, u8),
+    gravity: Gravity,
+) -> Result<(), MagickError> {
     let w = image.pixels.width();
     let h = image.pixels.height();
+
+    // First, create a temporary image to draw the text with full opacity
+    let mut text_image = image::DynamicImage::new_rgba8(w, h);
+
+    // Draw the text with full alpha on the temporary image
     image_text::draw_text(
-        &mut image.pixels,
+        &mut text_image,
         TextBlock {
             alignment: gravity_into(gravity, w, h),
             max_width: Some(w as f32),
@@ -55,13 +68,31 @@ pub fn label(image: &mut Image, text: &std::ffi::OsStr, color: (u8, u8, u8, u8),
             text_align: Default::default(),
             text_spans: vec![Text {
                 text: String::from(text.to_string_lossy()),
-                font_size: 42.0,
-                font_weight: 400,
-                color: color,
-                font: "Arial-Black".into(),
+                font_size: 200.0,
+                font_weight: 1200,
+                color: (color.0, color.1, color.2, 255), // Force full alpha for rendering
+                font: None,
                 line_height: None,
             }],
-            font: "Arial-Black".into(),
+            font: None,
         },
     );
+
+    // Now composite the temporary image onto the original with the desired alpha
+    let text_alpha = color.3;
+    composite(
+        image,
+        &mut Image {
+            format: Some(ImageFormat::Png),
+            pixels: text_image,
+            exif: None,
+            icc: None,
+            properties: crate::image::InputProperties {
+                filename: std::ffi::OsString::new(),
+                color_type: image::ExtendedColorType::Rgba8,
+            },
+        },
+        Gravity::Center,
+        Alpha(text_alpha as f32 / 255.0),
+    )
 }

@@ -165,7 +165,7 @@ fn real_main() -> Result<(), MagickError> {
                     })
                     .map_err(|_: ParseIntError| wm_err!("invalid RGBA color"))?;
 
-                label(
+                wm_try!(label(
                     &mut image,
                     watermark_text,
                     color,
@@ -174,7 +174,7 @@ fn real_main() -> Result<(), MagickError> {
                             Gravity::try_from(&gravity_str).unwrap_or(Gravity::Center)
                         })
                         .unwrap_or(Gravity::Center),
-                );
+                ));
             }
 
             wm_try!(encode(

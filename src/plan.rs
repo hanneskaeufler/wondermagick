@@ -10,7 +10,7 @@ use crate::arg_parsers::{
 };
 use crate::args::Arg;
 use crate::decode::decode;
-use crate::filename_utils::insert_suffix_before_extension_in_path;
+use crate::utils::filename::insert_suffix_before_extension_in_path;
 use crate::{encode, wm_err};
 use crate::{error::MagickError, operations::Operation, wm_try};
 
@@ -143,12 +143,7 @@ impl ExecutionPlan {
                 operation.execute(&mut image)?;
             }
 
-            encode::encode(
-                &mut image,
-                &output_file,
-                self.output_format,
-                &self.modifiers,
-            )?;
+            encode::encode(&mut image, output_file, self.output_format, &self.modifiers)?;
         }
 
         Ok(())
@@ -196,13 +191,10 @@ pub struct Strip {
 impl Strip {
     pub fn set_all(&mut self, new_val: bool) {
         // enumerate the fields exhaustively so that the compiler complains if we miss any
-        std::mem::swap(
-            self,
-            &mut Self {
-                exif: new_val,
-                icc: new_val,
-            },
-        );
+        *self = Self {
+            exif: new_val,
+            icc: new_val,
+        };
     }
 }
 

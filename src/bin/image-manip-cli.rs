@@ -129,7 +129,8 @@ fn real_main() -> Result<(), MagickError> {
                             ignore_aspect_ratio: false
                         },
                         constraint: ResizeConstraint::OnlyShrink
-                    }
+                    },
+                    None // Suitable filter is automatically determined inside `resize_imp`
                 ));
             }
 
@@ -188,6 +189,7 @@ fn real_main() -> Result<(), MagickError> {
                         icc: args.strip_metadata,
                     },
                     identify_format: Default::default(),
+                    filter: None
                 },
             ));
         }

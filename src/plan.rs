@@ -3,7 +3,6 @@ use std::{
     path::PathBuf,
 };
 
-use crate::arg_parse_err::ArgParseErr;
 use crate::arg_parsers::FileFormat;
 use crate::arg_parsers::{
     parse_numeric_arg, CropGeometry, IdentifyFormat, InputFileArg, Location, ResizeGeometry,
@@ -11,6 +10,7 @@ use crate::arg_parsers::{
 use crate::args::Arg;
 use crate::decode::decode;
 use crate::utils::filename::insert_suffix_before_extension_in_path;
+use crate::{arg_parse_err::ArgParseErr, arg_parsers::Filter};
 use crate::{encode, wm_err};
 use crate::{error::MagickError, operations::Operation, wm_try};
 
@@ -54,9 +54,10 @@ impl ExecutionPlan {
                 self.add_operation(Operation::Identify(self.modifiers.identify_format.clone()));
             }
             Arg::Quality => self.modifiers.quality = Some(parse_numeric_arg(value.unwrap())?),
-            Arg::Resize => {
-                self.add_operation(Operation::Resize(ResizeGeometry::try_from(value.unwrap())?))
-            }
+            Arg::Resize => self.add_operation(Operation::Resize(
+                ResizeGeometry::try_from(value.unwrap())?,
+                self.modifiers.filter,
+            )),
             Arg::Sample => {
                 self.add_operation(Operation::Sample(ResizeGeometry::try_from(value.unwrap())?))
             }
@@ -67,9 +68,10 @@ impl ExecutionPlan {
                 self.modifiers.strip.set_all(true);
             }
             Arg::Thumbnail => {
-                self.add_operation(Operation::Thumbnail(ResizeGeometry::try_from(
-                    value.unwrap(),
-                )?));
+                self.add_operation(Operation::Thumbnail(
+                    ResizeGeometry::try_from(value.unwrap())?,
+                    self.modifiers.filter,
+                ));
                 // -thumbnail also strips all metadata except the ICC profile
                 // Some docs state that it strips ICC profile also, but
                 // https://usage.imagemagick.org/thumbnails/ says v6.5.4-7 onwards preserves them.
@@ -79,6 +81,7 @@ impl ExecutionPlan {
             Arg::Format => {
                 self.modifiers.identify_format = Some(IdentifyFormat::try_from(value.unwrap())?)
             }
+            Arg::Filter => self.modifiers.filter = Some(Filter::try_from(value.unwrap())?),
         };
 
         Ok(())
@@ -105,10 +108,25 @@ impl ExecutionPlan {
             ops: self.global_ops.clone(),
         };
 
-        if let Some(modifier) = file.read_mod {
+        // Operations are affected by Modifiers such as -format or -quality.
+        // Their behavior is somewhat nontrivial.
+        //
+        // In imagemagick the modifier (usually) only applies if it comes BEFORE the operation it affects.
+        // So `convert in.png -filter box -resize 100 out.png` uses box filter
+        // but `convert in.png -resize 100 -filter box out.png` uses default filter.
+        //
+        // However! In `convert -resize 100 -filter box in.png out.png` the filter DOES apply.
+        // This is because `-resize 100` comes before ALL filenames and is applied to all files,
+        // and it reads the state of the modifiers at the point when the file is added.
+        // This loop replicates this special behavior for global ops.
+        for op in &mut file_plan.ops {
+            op.apply_modifiers(&self.modifiers);
+        }
+
+        if let Some(file_mod) = file.read_mod {
             use crate::arg_parsers::ReadModifier::*;
-            let op = match modifier {
-                Resize(geom) => Some(Operation::Resize(geom)),
+            let op = match file_mod {
+                Resize(geom) => Some(Operation::Resize(geom, None)),
                 Crop(geom) => Some(Operation::CropOnLoad(geom)),
                 FrameSelect(s) => {
                     if s != OsStr::new("0") {
@@ -179,6 +197,7 @@ pub struct Modifiers {
     pub quality: Option<f64>,
     pub strip: Strip,
     pub identify_format: Option<IdentifyFormat>,
+    pub filter: Option<Filter>,
 }
 
 #[derive(Debug, Default, Copy, Clone)] // bools default to false

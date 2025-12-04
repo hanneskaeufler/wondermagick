@@ -2,6 +2,7 @@ pub mod alpha;
 pub mod auto_orient;
 pub mod composite;
 mod crop;
+pub mod draw_text;
 pub mod gravity;
 pub mod identify;
 pub mod label;

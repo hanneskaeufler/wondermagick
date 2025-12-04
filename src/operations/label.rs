@@ -1,9 +1,12 @@
 use crate::{
-    error::MagickError, image::Image, operations::alpha::Alpha, operations::composite::composite,
+    error::MagickError,
+    image::Image,
+    operations::alpha::Alpha,
+    operations::composite::composite,
+    operations::draw_text::{draw_text, AxisAlign, Text, TextBlock, TextBlockPosition},
     operations::gravity::Gravity,
 };
 use image::ImageFormat;
-use image_text::{AxisAlign, Text, TextBlock, TextBlockPosition};
 
 fn gravity_into(gravity: Gravity, width: u32, height: u32) -> TextBlockPosition {
     match gravity {
@@ -59,7 +62,7 @@ pub fn label(
     let mut text_image = image::DynamicImage::new_rgba8(w, h);
 
     // Draw the text with full alpha on the temporary image
-    image_text::draw_text(
+    draw_text(
         &mut text_image,
         TextBlock {
             alignment: gravity_into(gravity, w, h),

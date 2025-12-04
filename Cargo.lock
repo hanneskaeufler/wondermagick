@@ -669,19 +669,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "image-text"
-version = "0.1.0"
-source = "git+https://github.com/bschwind/image-text.git#9987856df1e659e14b330668cb2aaae65193142e"
-dependencies = [
- "cosmic-text",
- "fontdb",
- "image",
- "num-traits",
- "sys-locale",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "image-webp"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1952,9 +1939,9 @@ checksum = "7df058c713841ad818f1dc5d3fd88063241cc61f49f5fbea4b951e8cf5a8d71d"
 
 [[package]]
 name = "unicode-script"
-version = "0.5.7"
+version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fb421b350c9aff471779e262955939f565ec18b86c15364e6bdf0d662ca7c1f"
+checksum = "383ad40bb927465ec0ce7720e033cb4ca06912855fc35db31b5755d0de75b1ee"
 
 [[package]]
 name = "unicode-segmentation"
@@ -2097,10 +2084,11 @@ name = "wondermagick"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "cosmic-text",
  "current_platform",
  "derive-quickcheck-arbitrary",
+ "fontdb",
  "image",
- "image-text",
  "imageproc",
  "jxl-oxide",
  "mimalloc",
@@ -2108,7 +2096,9 @@ dependencies = [
  "quickcheck",
  "quickcheck_macros",
  "strum",
+ "sys-locale",
  "tempfile",
+ "thiserror 1.0.69",
  "webp",
 ]
 

@@ -49,7 +49,7 @@ pub fn composite(
     };
 
     if let Some(rgba_img) = image2.pixels.as_mut_rgba8() {
-        map_pixels_mut(rgba_img, |_x, _y, pixel| {
+        map_pixels_mut(rgba_img, |pixel| {
             let a = pixel[3];
             Rgba([
                 pixel[0],

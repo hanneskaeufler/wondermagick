@@ -189,7 +189,8 @@ fn real_main() -> Result<(), MagickError> {
                         icc: args.strip_metadata,
                     },
                     identify_format: Default::default(),
-                    filter: None
+                    filter: None,
+                    colorspace: None,
                 },
             ));
         }

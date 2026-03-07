@@ -1,6 +1,8 @@
 //! Parsers for specific command-line argument formats,
 //! e.g. <https://www.imagemagick.org/Magick++/Geometry.html>
 
+mod colorspace;
+pub use colorspace::*;
 mod crop;
 pub use crop::*;
 mod resize;
@@ -17,3 +19,9 @@ mod identify_format;
 pub use identify_format::{IdentifyFormat, Token, Var};
 mod filter;
 pub use filter::*;
+mod blur_geometry;
+pub use blur_geometry::*;
+mod grayscale_method;
+pub use grayscale_method::*;
+mod unsharpen_geometry;
+pub use unsharpen_geometry::*;

@@ -1,15 +1,26 @@
 pub mod alpha;
 pub mod auto_orient;
+mod blur;
+mod combine;
 pub mod composite;
 mod crop;
 pub mod draw_text;
+mod flip;
 pub mod gravity;
-pub mod identify;
 pub mod label;
+pub use flip::Axis;
+mod grayscale;
+pub mod identify;
+mod monochrome;
+mod negate;
 pub mod resize;
+mod unsharpen;
 
 use crate::{
-    arg_parsers::{CropGeometry, Filter, IdentifyFormat, LoadCropGeometry, ResizeGeometry},
+    arg_parsers::{
+        BlurGeometry, CropGeometry, Filter, GrayscaleMethod, IdentifyFormat, LoadCropGeometry,
+        ResizeGeometry, UnsharpenGeometry,
+    },
     error::MagickError,
     image::Image,
     plan,
@@ -24,7 +35,14 @@ pub enum Operation {
     CropOnLoad(LoadCropGeometry),
     Crop(CropGeometry),
     Identify(Option<IdentifyFormat>),
+    Negate,
     AutoOrient,
+    Blur(BlurGeometry),
+    GaussianBlur(BlurGeometry),
+    Grayscale(GrayscaleMethod),
+    Flip(Axis),
+    Monochrome,
+    Unsharpen(UnsharpenGeometry),
 }
 
 impl Operation {
@@ -37,7 +55,14 @@ impl Operation {
             Operation::CropOnLoad(geom) => crop::crop_on_load(image, geom),
             Operation::Crop(geom) => crop::crop(image, geom),
             Operation::Identify(format) => identify::identify(image, format.clone()),
+            Operation::Negate => negate::negate(image),
             Operation::AutoOrient => auto_orient::auto_orient(image),
+            Operation::Blur(geom) => blur::blur(image, geom),
+            Operation::GaussianBlur(geom) => blur::gaussian_blur(image, geom),
+            Operation::Grayscale(method) => grayscale::grayscale(image, method),
+            Operation::Flip(axis) => flip::flip(image, axis),
+            Operation::Monochrome => monochrome::monochrome(image),
+            Operation::Unsharpen(geom) => unsharpen::unsharpen(image, geom),
         }
     }
 
@@ -47,14 +72,46 @@ impl Operation {
     pub fn apply_modifiers(&mut self, mods: &plan::Modifiers) {
         use Operation::*;
         match self {
-            Resize(resize_geometry, _filter) => *self = Resize(*resize_geometry, mods.filter),
-            Thumbnail(resize_geometry, _filter) => *self = Thumbnail(*resize_geometry, mods.filter),
+            Resize(resize_geometry, _) => *self = Resize(*resize_geometry, mods.filter),
+            Thumbnail(resize_geometry, _) => *self = Thumbnail(*resize_geometry, mods.filter),
             Scale(_) => (),
             Sample(_) => (),
             CropOnLoad(_) => (),
             Crop(_) => (),
-            Identify(_old_identify_format) => *self = Identify(mods.identify_format.clone()),
+            Identify(_) => *self = Identify(mods.identify_format.clone()),
+            Negate => (),
             AutoOrient => (),
+            Blur(_) => (),
+            GaussianBlur(_) => (),
+            Grayscale(_) => (),
+            Flip(_) => (),
+            Monochrome => (),
+            Unsharpen(_) => (),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum RewriteOperation {
+    Combine {
+        color: image::ColorType,
+        /// Rewrite the color model to true color (`sRGB`) when the channel count is exceeded?
+        fallback_for_channel_count: bool,
+    },
+}
+
+impl RewriteOperation {
+    pub(crate) fn execute(&self, sequence: &mut Vec<Image>) -> Result<(), MagickError> {
+        match self {
+            &RewriteOperation::Combine {
+                color,
+                fallback_for_channel_count,
+            } => {
+                let image =
+                    combine::combine(sequence.split_off(0), color, fallback_for_channel_count)?;
+                sequence.push(image);
+                Ok(())
+            }
         }
     }
 }

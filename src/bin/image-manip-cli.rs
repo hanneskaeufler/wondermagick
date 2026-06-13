@@ -87,6 +87,8 @@ struct IdentitfyArgs {
 }
 
 fn real_main() -> Result<(), MagickError> {
+    image_extras::register();
+
     let app_args = App::parse();
     wondermagick::init::init();
 

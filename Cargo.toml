@@ -26,6 +26,7 @@ cosmic-text = "0.12"
 sys-locale = "0.3"
 fontdb = "0.16"
 thiserror = "1"
+image-extras = { git = "https://github.com/hanneskaeufler/image-extras.git", branch = "hk-imageio", version = "0.1.1", default-features = false, features = ["heic"] }
 
 [features]
 default = ["hardened_malloc", "default-formats"]

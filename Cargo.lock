@@ -722,7 +722,7 @@ dependencies = [
 [[package]]
 name = "image-extras"
 version = "0.1.1"
-source = "git+https://github.com/hanneskaeufler/image-extras.git?rev=0b651d68668cc9f741fa1d24e51d68eb3cc7bb2c#0b651d68668cc9f741fa1d24e51d68eb3cc7bb2c"
+source = "git+https://github.com/hanneskaeufler/image-extras.git?rev=9c434f307d248cf20310cd3fc19fd5a03b7b3d35#9c434f307d248cf20310cd3fc19fd5a03b7b3d35"
 dependencies = [
  "image",
  "imageio",

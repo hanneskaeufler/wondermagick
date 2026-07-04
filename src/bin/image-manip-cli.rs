@@ -6,7 +6,8 @@ use std::{
     ffi::{OsStr, OsString},
     num::ParseIntError,
 };
-use wondermagick::arg_parsers::IdentifyFormat;
+use wondermagick::arg_parsers::{parse_numeric_arg, IdentifyFormat, Rotation};
+use wondermagick::operations::rotate::rotate;
 use wondermagick::{
     arg_parsers::{FileFormat, Location, ResizeConstraint, ResizeGeometry, ResizeTarget},
     decode::decode,
@@ -47,6 +48,10 @@ struct ManipulateArgs {
     /// Resize instruction
     #[clap(long)]
     resize: Option<OsString>,
+
+    /// Rotate instruction
+    #[clap(long)]
+    rotate: Option<OsString>,
 
     /// Strip for privacy
     #[clap(long)]
@@ -134,6 +139,12 @@ fn real_main() -> Result<(), MagickError> {
                     },
                     None // Suitable filter is automatically determined inside `resize_imp`
                 ));
+            }
+
+            if let Some(rotation) = &args.rotate {
+                let num: i32 =
+                    parse_numeric_arg(rotation).map_err(|_| wm_err!("failed parsing rotation"))?;
+                wm_try!(rotate(&mut image, &Rotation::from(num)));
             }
 
             if let Some(watermark_image) = &args.watermark_image {

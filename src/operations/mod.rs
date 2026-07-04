@@ -7,9 +7,12 @@ pub mod gravity;
 pub mod identify;
 pub mod label;
 pub mod resize;
+pub mod rotate;
 
 use crate::{
-    arg_parsers::{CropGeometry, Filter, IdentifyFormat, LoadCropGeometry, ResizeGeometry},
+    arg_parsers::{
+        CropGeometry, Filter, IdentifyFormat, LoadCropGeometry, ResizeGeometry, Rotation,
+    },
     error::MagickError,
     image::Image,
     plan,
@@ -18,6 +21,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operation {
     Resize(ResizeGeometry, Option<Filter>),
+    Rotate(Rotation),
     Thumbnail(ResizeGeometry, Option<Filter>),
     Scale(ResizeGeometry),
     Sample(ResizeGeometry),
@@ -31,6 +35,7 @@ impl Operation {
     pub fn execute(&self, image: &mut Image) -> Result<(), MagickError> {
         match self {
             Operation::Resize(geom, filter) => resize::resize(image, geom, *filter),
+            Operation::Rotate(rotation) => rotate::rotate(image, rotation),
             Operation::Thumbnail(geom, filter) => resize::thumbnail(image, geom, *filter),
             Operation::Scale(geom) => resize::scale(image, geom),
             Operation::Sample(geom) => resize::sample(image, geom),
@@ -48,6 +53,7 @@ impl Operation {
         use Operation::*;
         match self {
             Resize(resize_geometry, _filter) => *self = Resize(*resize_geometry, mods.filter),
+            Rotate(_) => {}
             Thumbnail(resize_geometry, _filter) => *self = Thumbnail(*resize_geometry, mods.filter),
             Scale(_) => (),
             Sample(_) => (),
